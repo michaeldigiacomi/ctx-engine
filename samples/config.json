@@ -1,0 +1,9 @@
+{
+  "db_host": "localhost",
+  "db_port": 5432,
+  "db_name": "context_engine",
+  "db_user": "your_db_user",
+  "ollama_url": "http://localhost:11434",
+  "embedding_model": "nomic-embed-text",
+  "namespace": "my-project"
+}
