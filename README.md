@@ -221,3 +221,37 @@ See `examples/claude_integration.py` for Claude Code integration patterns:
 - Saving architectural decisions
 - User preference memory
 - Session-based conversation storage
+
+## Two-Tier Memory System
+
+For agents that need both fast session state and semantic long-term memory:
+
+```python
+from context_engine import MemoryManager
+
+# Initialize for your model type
+manager = MemoryManager(model_type="local-8k")
+
+# Working memory - fast, session-scoped
+manager.working.set_session_context("user_name", "Alice")
+task_id = manager.working.save_task(
+    description="Refactor auth module",
+    status="ready"
+)
+
+# Reference memory - semantic, long-term
+manager.reference.save(
+    content="User prefers Python",
+    category="preference"
+)
+
+# Get assembled context with token budgeting
+context = manager.get_context(
+    "What should I refactor?",
+    max_tokens=4000
+)
+
+# Working + reference combined with intelligent ranking
+```
+
+See [docs/two-tier-memory.md](docs/two-tier-memory.md) for detailed documentation.
