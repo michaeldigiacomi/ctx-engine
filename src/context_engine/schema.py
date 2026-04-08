@@ -201,3 +201,64 @@ class SchemaManager:
             return True, None
         except psycopg2.Error as e:
             return False, str(e)
+
+    def ensure_working_schema(self) -> bool:
+        """Create working schema tables if they don't exist."""
+        conn = None
+        cur = None
+        try:
+            conn = psycopg2.connect(self.config.conn_string)
+            cur = conn.cursor()
+
+            # Create schema
+            cur.execute("CREATE SCHEMA IF NOT EXISTS working")
+
+            # Create session_context table
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS working.session_context (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL,
+                    priority INTEGER DEFAULT 5,
+                    ttl_minutes INTEGER DEFAULT 60,
+                    last_accessed TIMESTAMP DEFAULT NOW(),
+                    created_at TIMESTAMP DEFAULT NOW()
+                )
+            """)
+
+            # Create tasks table
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS working.tasks (
+                    task_id TEXT PRIMARY KEY,
+                    description TEXT NOT NULL,
+                    plan JSONB,
+                    status TEXT DEFAULT 'planning',
+                    assigned_to TEXT,
+                    priority INTEGER DEFAULT 5,
+                    result JSONB,
+                    created_at TIMESTAMP DEFAULT NOW(),
+                    updated_at TIMESTAMP DEFAULT NOW()
+                )
+            """)
+
+            # Create recent_decisions table
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS working.recent_decisions (
+                    id SERIAL PRIMARY KEY,
+                    content TEXT NOT NULL,
+                    category TEXT DEFAULT 'decision',
+                    context TEXT,
+                    ttl_minutes INTEGER DEFAULT 480,
+                    created_at TIMESTAMP DEFAULT NOW()
+                )
+            """)
+
+            conn.commit()
+            return True
+        except psycopg2.Error as e:
+            print(f"Working schema error: {e}")
+            return False
+        finally:
+            if cur:
+                cur.close()
+            if conn:
+                conn.close()
