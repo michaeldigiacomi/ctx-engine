@@ -104,11 +104,11 @@ jobs:
       - name: Test installation from PyPI
         run: |
           python -m pip install --upgrade pip
-          pip install context-engine
+          pip install ctx-engine
           python -c "import context_engine; print('context-engine imported successfully')"
           ctx-engine --help
 
       - name: Test dev dependencies install
         run: |
-          pip install context-engine[dev]
+          pip install ctx-engine[dev]
           ctx-engine --help
